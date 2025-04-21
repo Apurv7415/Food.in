@@ -64,7 +64,7 @@
         #results ul {
             list-style: none;
             padding: 0;
-            margin: 0; /* added margin reset */
+            margin: 0; 
         }
         #results li {
             margin-bottom: 15px;
@@ -94,7 +94,6 @@
             border-radius: 5px;
             margin-top: 5px;
             width: 280px;
-            /* width of input */
             z-index: 1;
             display: none;
             padding: 5px 0;
@@ -136,8 +135,7 @@
         const dishInput = document.getElementById('dishInput');
         const suggestionsDiv = document.getElementById('suggestions');
         const suggestionsList = suggestionsDiv.querySelector('ul');
-
-        // Local "database" (replace with your actual data)
+        // Zomato ka database nahi Milla Isliye local cereate kiya hai 
         const localDB = {
             "Delhi": {
                 "Pizza": [
@@ -209,11 +207,10 @@
 
         searchForm.addEventListener('submit', (event) => {
             event.preventDefault();
-            resultsList.innerHTML = ''; // Clear previous results
+            resultsList.innerHTML = '';
             const dish = dishInput.value.trim();
 
-            let found = false; // Flag to check if any results are found
-
+            let found = false; 
             for (const city in localDB) {
                 const cityData = localDB[city];
                 const dishRestaurants = cityData[dish];
@@ -228,7 +225,7 @@
                         `;
                         resultsList.appendChild(li);
                     });
-                    found = true; // Set flag to true if results are found
+                    found = true; 
                 }
             }
             if (!found) {
