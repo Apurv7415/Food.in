@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dish Search</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #e55353;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #searchForm {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        #searchForm input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px 0 0 5px;
+            outline: none;
+        }
+        #searchForm button {
+            padding: 10px 20px;
+            background-color: #e55353;
+            color: white;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: 600;
+        }
+        #searchForm button:hover {
+            background-color: #c83e4d;
+        }
+        #results {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            overflow-x: auto;
+        }
+        #results h2 {
+            color: #e55353;
+            margin-bottom: 10px;
+        }
+        #results ul {
+            list-style: none;
+            padding: 0;
+            margin: 0; /* added margin reset */
+        }
+        #results li {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        #results li strong {
+            color: #e55353;
+        }
+        #results li span {
+            display: block;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            text-align: center;
+        }
+        #suggestions {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 5px;
+            width: 280px;
+            /* width of input */
+            z-index: 1;
+            display: none;
+            padding: 5px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #suggestions ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #suggestions li {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        #suggestions li:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dish Search</h1>
+        <form id="searchForm">
+            <input type="text" id="dishInput" placeholder="Enter Dish" required>
+            <button type="submit">Search</button>
+        </form>
+        <div id="suggestions">
+            <ul></ul>
+        </div>
+        <div id="results">
+            <h2>Restaurants:</h2>
+            <ul></ul>
+        </div>
+    </div>
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const resultsList = document.getElementById('results').querySelector('ul');
+        const dishInput = document.getElementById('dishInput');
+        const suggestionsDiv = document.getElementById('suggestions');
+        const suggestionsList = suggestionsDiv.querySelector('ul');
+
+        // Local "database" (replace with your actual data)
+        const localDB = {
+            "Delhi": {
+                "Pizza": [
+                    { name: "Domino's Pizza", location: "Connaught Place", mapLocation: "https://www.google.com/maps/place/Domino's+Pizza/@28.6318149,77.2189881,17z" },
+                    { name: "Pizza Hut", location: "Saket", mapLocation: "https://www.google.com/maps/place/Pizza+Hut/@28.523522,77.206597,17z" }
+                ],
+                "Burgers": [
+                    { name: "Burger King", location: "Karol Bagh", mapLocation: "https://www.google.com/maps/place/Burger+King/@28.651571,77.206822,17z" },
+                    { name: "McDonald's", location: "Rajouri Garden", mapLocation: "https://www.google.com/maps/place/McDonald's/@28.648116,77.127453,17z" }
+                ],
+                "Tacos": [
+                    { name: "Taco Bell", location: "Vasant Kunj", mapLocation: "https://www.google.com/maps/place/Taco+Bell/@28.524227,77.162293,17z" },
+                    { name: "Quesadilla", location: "Hauz Khas", mapLocation: "https://www.google.com/maps/search?api=1&query=Quesadilla+Hauz+Khas+Delhi" }
+                ]
+            },
+            "Ayanagar": {
+                "Rolls": [
+                    { name: "SFC", location: "Main Market", mapLocation: "https://www.google.com/maps/search?api=1&query=SFC+Ayanagar+Delhi" },
+                    { name: "Rolls King", location: "MG Road", mapLocation: "https://www.google.com/maps/place/Rolls+King/@28.482344,77.078216,17z" }
+                ],
+                "Chowmein": [
+                    { name: "Dragon Hut", location: "Near Pillar No 125", mapLocation: "https://www.google.com/maps/search?api=1&query=Dragon+Hut+Near+Pillar+No+125+Delhi" },
+                    { name: "Yummy Chowmein", location: "1 MG Road", mapLocation: "https://www.google.com/maps/search?api=1&query=Yummy+Chowmein+MG+Road+Delhi" }
+                ]
+            },
+            "Ghitorni": {
+                "Momos": [
+                    { name: "Momos Point", location: "Main Market", mapLocation: "https://www.google.com/maps/search?api=1&query=Momos+Point+Ghitorni+Delhi" },
+                    { name: "Yummy Momos", location: "Near Guru Dronacharya", mapLocation: "https://www.google.com/maps/search?api=1&query=Yummy+Momos+Near+Guru+Dronacharya+Delhi" }
+                ],
+                "Thali": [
+                    { name: "Apna Dhaba", location: "Main Market", mapLocation: "https://www.google.com/maps/search?api=1&query=Apna+Dhaba+Ghitorni+Delhi" },
+                    { name: "Kake Di Hatti", location: "Near Guru Dronacharya", mapLocation: "https://www.google.com/maps/place/Kake+di+Hatti/@28.508941,77.149174,17z" }
+                ]
+            }
+        };
+
+        let allDishes = [];
+        for (const city in localDB) {
+            for (const dish in localDB[city]) {
+                if (!allDishes.includes(dish)) {
+                    allDishes.push(dish);
+                }
+            }
+        }
+
+        dishInput.addEventListener('input', () => {
+            const searchTerm = dishInput.value.trim().toLowerCase();
+            suggestionsList.innerHTML = '';
+            suggestionsDiv.style.display = 'none';
+
+            if (searchTerm.length > 0) {
+                const suggestions = allDishes.filter(dish => dish.toLowerCase().startsWith(searchTerm));
+                if (suggestions.length > 0) {
+                    suggestions.forEach(suggestion => {
+                        const li = document.createElement('li');
+                        li.textContent = suggestion;
+                        li.addEventListener('click', () => {
+                            dishInput.value = suggestion;
+                            suggestionsDiv.style.display = 'none';
+                            searchForm.dispatchEvent(new Event('submit'));
+                        });
+                        suggestionsList.appendChild(li);
+                    });
+                    suggestionsDiv.style.display = 'block';
+                }
+            }
+        });
+
+        searchForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            resultsList.innerHTML = ''; // Clear previous results
+            const dish = dishInput.value.trim();
+
+            let found = false; // Flag to check if any results are found
+
+            for (const city in localDB) {
+                const cityData = localDB[city];
+                const dishRestaurants = cityData[dish];
+                if (dishRestaurants) {
+                    dishRestaurants.forEach(restaurant => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <strong>${restaurant.name}</strong><br>
+                            <span>${restaurant.location}</span><br>
+                            <span>City: ${city}</span><br>
+                            <a href="${restaurant.mapLocation}" target="_blank">View on Google Maps</a>
+                        `;
+                        resultsList.appendChild(li);
+                    });
+                    found = true; // Set flag to true if results are found
+                }
+            }
+            if (!found) {
+                resultsList.innerHTML = `<li class="error-message">No restaurants found serving ${dish} in our database.</li>`;
+            }
+        });
+    </script>
+</body>
+</html>
